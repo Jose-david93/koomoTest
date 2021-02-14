@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use App\Http\Controllers\BaseController;
 
-class CommentController extends Controller
+class CommentController extends BaseController
 {
     public function store(Request $request)
     {
@@ -17,7 +18,11 @@ class CommentController extends Controller
         $comment = $request->all();
         $comment['user_id'] = auth('sanctum')->id();
         $comment = Comment::create($comment);
-        return response()->json($comment, 201);
+        
+        if(is_null($comment))
+            return $this->sendError("Something went wrong while creating");
+
+        return $this->sendResponse($comment,201);
     }
 
     public function showByPostId($id)
@@ -25,7 +30,8 @@ class CommentController extends Controller
         $comments = Comment::where('post_id',$id);
         if(!auth('sanctum')->check())
             $comments = $comments->where("is_published",true);
-        return response()->json($comments->get());
+
+        return $this->sendResponse($comments->get());
     }
 
     public function showByUserId($id)
@@ -33,7 +39,8 @@ class CommentController extends Controller
         $comments = Comment::where('user_id',$id);
         if(!auth('sanctum')->check())
             $comments = $comments->where("is_published",true);
-        return response()->json($comments->get());
+        
+        return $this->sendResponse($comments->get());
     }
 
     public function update(Request $request, $id)
@@ -46,26 +53,28 @@ class CommentController extends Controller
         ]);
         $comment = Post::find($id);
 
-        if(auth('sanctum')->id() === $comment->user_id)
+        if($this->isCurrentUserOwner($comment->user_id))
         {
             $is_updated = Comment::find($id)->update($request->all());
             if($is_updated)
-                return response(['message' => 'Update successfully'], 200);
-            return response(['message' => 'Something went wrong while updating'], 400);
+                return $this->sendResponse("Update successfully");
+            
+            return $this->sendError("Something went wrong while updating");
         }
-        return response(['message' => "This comment doesn't belong to you"], 401);
+        return $this->sendError("This comment doesn't belong to you",401);
     }
 
     public function destroy($id)
     {
         $comment = Comment::find($id);
-        if(auth('sanctum')->id() === $comment->user_id)
+        if($this->isCurrentUserOwner($comment->user_id))
         {
             $is_deleted = Comment::find($id)->delete();
             if($is_deleted)
-                return response(['message' => 'Deleted successfully'], 200);
-            return response(['message' => 'Something went wrong while deleting'], 400);
+                return $this->sendResponse("Deleted successfully");
+
+            return $this->sendError("Something went wrong while deleting");
         }
-        return response(['message' => "This comment doesn't belong to you"], 401);
+        return $this->sendError("This comment doesn't belong to you",401);
     }
 }

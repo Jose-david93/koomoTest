@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Http\Controllers\BaseController;
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
 
     public function login(Request $request) {
@@ -17,34 +18,28 @@ class AuthController extends Controller
             "password" =>  "required",
         ]);
 
-        if($validator->fails()) {
-            return response()->json(["validation_errors" => $validator->errors(), "status_code" => 400]);
-        }
+        if($validator->fails())
+            return $this->sendError("validation_errors",400,$validator->errors());
 
         $user = User::where("email", $request->email)->first();
 
-        if(is_null($user)) {
-            return response()->json(["status" => "failed", "message" => "Failed! email not found", "status_code" => 400]);
-        }
+        if(is_null($user))
+            return $this->sendError("Failed! email not found");
 
-        $credentials = $request->only('email', 'password');
-        if(!Auth::attempt($credentials)){
-            return response()->json(["status" => "Unauthorized", "success" => false, "message" => "Whoops! invalid password", "status_code" => 500]);
-        }
-
-        $user = User::where("email", $request->email)->first();
-        $tokenResult = $user->createToken('authToken')->plainTextToken;
+        if(!Auth::attempt($request->only('email', 'password')))
+            return $this->sendError("Whoops! invalid password", 401, []);
         
-        return response()->json([
-            'status_code' => 200,
-            'token' => $tokenResult
-        ]);
+        $tokenResult = User::where("email", $request->email)
+                        ->first()
+                        ->createToken('authToken')
+                        ->plainTextToken;
+        
+        return $this->sendResponse($tokenResult);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
-        return response()->json(['data' => 'User logged out.'], 200);
+        return $this->sendResponse("Token deleted successfully");
     }
 }

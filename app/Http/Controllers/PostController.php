@@ -6,15 +6,16 @@ use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\BaseController;
 
-class PostController extends Controller
+class PostController extends BaseController
 {
     public function index()
     {
         $posts = Post::with('latestComments')->withCount('comments');
         if(!auth('sanctum')->check())
             $posts = $posts->where("is_published",true);
-        return response()->json($posts->paginate(5));
+        return $this->sendResponse($posts->paginate(5));
     }
 
     public function store(Request $request)
@@ -28,9 +29,13 @@ class PostController extends Controller
         $post = $request->all();
         $post['user_id'] = auth('sanctum')->id();
         if(Post::find(['slug',$post->slug])->exists())
-            return response(['message' => 'This record already exists'], 400);
+            return $this->sendError("This record already exists");
         $post = Post::create($post);
-        return response()->json($post, 201);
+
+        if(is_null($post))
+            return $this->sendError("Something went wrong while creating");
+
+        return $this->sendResponse($post,201);
     }
 
     public function show($id)
@@ -38,7 +43,8 @@ class PostController extends Controller
         $posts = Post::with('comments')->find($id);
         if(!auth('sanctum')->check())
             $posts = $posts->where("is_published",true);
-        return response()->json($posts);
+        
+        return $this->sendResponse($posts->get());
     }
 
     public function update(Request $request, $id)
@@ -51,15 +57,15 @@ class PostController extends Controller
         ]);
         $post = Post::find($id);
 
-        if(auth('sanctum')->id() === $post->user_id)
+        if($this->isCurrentUserOwner($post->user_id))
         {
             $is_updated = Post::find($id)->update($request->all());
             if($is_updated)
-                return response(['message' => 'Update successfully'], 200);
-            return response(['message' => 'Something went wrong while updating'], 400);
-        }
-        return response(['message' => "This post doesn't belong to you"], 401);
+                return $this->sendResponse("Update successfully");
 
+            return $this->sendError("Something went wrong while updating");
+        }
+        return $this->sendError("This comment doesn't belong to you",401);
     }
 
     public function destroy($id)
@@ -69,9 +75,9 @@ class PostController extends Controller
         {
             $is_deleted = Post::find($id)->delete();
             if($is_deleted)
-                return response(['message' => 'Deleted successfully'], 200);
-            return response(['message' => 'Something went wrong while deleting'], 400);
+                return $this->sendResponse("Deleted successfully");
+            return $this->sendError("Something went wrong while deleting");
         }
-        return response(['message' => "This post doesn't belong to you"], 401);
+        return $this->sendError("This comment doesn't belong to you",401);
     }
 }
