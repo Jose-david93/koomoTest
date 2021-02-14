@@ -18,6 +18,8 @@ class CreateCommentsTable extends Migration
             $table->string("content");
             $table->boolean('is_published')->default(0);
             $table->timestamps();
+            $table->foreignId('user_id')
+            ->constrained();
             $table->foreignId('post_id')
             ->constrained()
             ->onUpdate('cascade')

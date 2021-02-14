@@ -39,8 +39,6 @@ class AuthController extends Controller
             'status_code' => 200,
             'token' => $tokenResult
         ]);
-
-        return ['token' => $token->plainTextToken];
     }
 
     public function logout(Request $request)
