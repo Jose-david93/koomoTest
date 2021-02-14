@@ -25,7 +25,7 @@ class CommentFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first(),
             'content' => $this->faker->text,
-            'is_published' => true,
+            'is_published' => (bool)rand(0,1),
         ];
     }
 }

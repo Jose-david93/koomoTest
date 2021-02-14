@@ -23,7 +23,7 @@ class PostFactory extends Factory
     {
         return [
             'title' => $this->faker->title,
-            'slug' => $this->faker->word,
+            'slug' => $this->faker->unique()->slug,
             'content' => $this->faker->text,
             'is_published' => (bool)rand(0,1)
         ];
