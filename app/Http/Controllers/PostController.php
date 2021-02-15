@@ -49,7 +49,7 @@ class PostController extends BaseController
         if(is_null($post))
             return $this->sendError(["Something went wrong while creating"]);
 
-        return $this->sendResponse($post,201);
+        return $this->sendResponse($post,Response::HTTP_CREATED);
     }
 
     public function show($id)
@@ -87,7 +87,7 @@ class PostController extends BaseController
 
             return $this->sendError(["Something went wrong while updating"]);
         }
-        return $this->sendError(["This comment doesn't belong to you"],401);
+        return $this->sendError(["This comment doesn't belong to you"],Response::HTTP_UNAUTHORIZED);
     }
 
     public function destroy($id)
@@ -104,6 +104,6 @@ class PostController extends BaseController
                 return $this->sendResponse(null);
             return $this->sendError(["Something went wrong while deleting"]);
         }
-        return $this->sendError(["This comment doesn't belong to you"],401);
+        return $this->sendError(["This comment doesn't belong to you"],Response::HTTP_UNAUTHORIZED);
     }
 }

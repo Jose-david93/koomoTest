@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Http\Controllers\BaseController;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends BaseController
 {
@@ -19,7 +20,7 @@ class AuthController extends BaseController
         ]);
 
         if($validator->fails())
-            return $this->sendError($validator->errors(),400);
+            return $this->sendError($validator->errors());
 
         $user = User::where("email", $request->email)->first();
 
@@ -27,7 +28,7 @@ class AuthController extends BaseController
             return $this->sendError(["Failed! email not found"]);
 
         if(!Auth::attempt($request->only('email', 'password')))
-            return $this->sendError(["invalid password"], 401);
+            return $this->sendError(["invalid password"], Response::HTTP_UNAUTHORIZED);
         
         $tokenResult = User::where("email", $request->email)
                         ->first()

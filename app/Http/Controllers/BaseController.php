@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class BaseController extends Controller
 {
-    public function sendResponse($result, $httpResponseCode = 200)
+    public function sendResponse($result, $httpResponseCode = Response::HTTP_OK)
     {
         $response = [
             'data' => $result
@@ -15,7 +15,7 @@ class BaseController extends Controller
         return response()->json($response, $httpResponseCode);
     }
 
-    public function sendError($error, $httpResponseCode = 400)
+    public function sendError($error, $httpResponseCode = Response::HTTP_BAD_REQUEST)
     {
     	$response = [
             'success' => false,
@@ -35,13 +35,13 @@ class BaseController extends Controller
         {
             $response['isValid'] = false;
             $response['message'] = "Not Acceptable";
-            $response['code'] = 406;
+            $response['code'] = Response::HTTP_NOT_ACCEPTABLE;
         }
         else if($request->header("accept") !== "application/vnd.api+json")
         {
             $response['isValid'] = false;
             $response['message'] = "Unsupported Media Type";
-            $response['code'] = 415;
+            $response['code'] = Response::HTTP_UNSUPPORTED_MEDIA_TYPE ;
         }
         
         return $response;
