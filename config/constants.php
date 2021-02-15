@@ -10,6 +10,8 @@ return [
         'this_record_already_exists' => 'This record already exists',
         'something_went_wrong_while_updating' => 'Something went wrong while updating',
         "this_comment_doesnt_belong_to_you" => "This comment doesn't belong to you",
+        "this_post_doesnt_belong_to_you" => "This post doesn't belong to you",
         'something_went_wrong_while_deleting' => 'Something went wrong while deleting',
+        'the_id_that_you_are_looking_for_does_not_exist' => 'The id that you are looking for does not exist'
     ]
 ];

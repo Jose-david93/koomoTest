@@ -6,6 +6,7 @@ use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 use Config;
 
 class CommentController extends BaseController
@@ -34,6 +35,7 @@ class CommentController extends BaseController
 
     public function showByPostId(Request $request, $id)
     {
+        $pages = 5;
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
@@ -43,11 +45,12 @@ class CommentController extends BaseController
         if(!auth('sanctum')->check())
             $comments = $comments->where("is_published",true);
 
-        return $this->sendResponse($comments->get());
+        return response()->json($comments->paginate($pages));
     }
 
     public function showByUserId(Request $request, $id)
     {
+        $pages = 5;
         $requestHeaders = $this->validateHeaders($request);
 
         if(!$requestHeaders['isValid'])
@@ -59,7 +62,7 @@ class CommentController extends BaseController
             $comments = $comments->where("is_published",true);
         
         $comments = $comments->get();
-        return $this->sendResponse($comments);
+        return response()->json($comments->paginate($pages));
     }
 
     public function update(Request $request, $id)
@@ -70,12 +73,14 @@ class CommentController extends BaseController
 
         $request->validate([
             'title' => 'required',
-            'slug' => 'required',
             'content' => 'required',
             'is_published' => 'required'
         ]);
 
-        $comment = Post::find($id);
+        if(!Comment::where('id',$id)->exists())
+            return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
+            
+        $comment = Comment::find($id);
 
         if($this->isCurrentUserOwner($comment->user_id))
         {
@@ -92,12 +97,15 @@ class CommentController extends BaseController
         return $this->sendError([Config::get('constants.messages.this_comment_doesnt_belong_to_you')],Response::HTTP_UNAUTHORIZED);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
 
+        if(!Comment::where('id',$id)->exists())
+            return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
+        
         $comment = Comment::find($id);
         if($this->isCurrentUserOwner($comment->user_id))
         {

@@ -9,8 +9,8 @@ use App\Http\Controllers\CommentController;
 Route::post("/login", [AuthController::class, 'login']);
 Route::get("/posts", [PostController::class, 'index']);
 Route::get("/posts/{id}", [PostController::class, 'show']);
-Route::get('/commentsByUser/{id}', [CommentController::class, 'showByUserId']);
 Route::get('/commentsByPost/{id}', [CommentController::class, 'showByPostId']);
+Route::get('/commentsByUser/{id}', [CommentController::class, 'showByUserId']);
 
 Route::group(['middleware' => ['auth:sanctum']], function() {
     //Post
