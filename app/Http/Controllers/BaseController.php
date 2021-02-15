@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Config;
 
 class BaseController extends Controller
 {
@@ -34,13 +36,13 @@ class BaseController extends Controller
         if($request->header("accept") == null)
         {
             $response['isValid'] = false;
-            $response['message'] = "Not Acceptable";
+            $response['message'] = Config::get('constants.messages.not_acceptable');
             $response['code'] = Response::HTTP_NOT_ACCEPTABLE;
         }
         else if($request->header("accept") !== "application/vnd.api+json")
         {
             $response['isValid'] = false;
-            $response['message'] = "Unsupported Media Type";
+            $response['message'] = Config::get('constants.messages.unsupported_media_type');
             $response['code'] = Response::HTTP_UNSUPPORTED_MEDIA_TYPE ;
         }
         

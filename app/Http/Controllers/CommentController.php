@@ -6,6 +6,7 @@ use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
+use Config;
 
 class CommentController extends BaseController
 {
@@ -25,7 +26,7 @@ class CommentController extends BaseController
         $comment = Comment::create($comment);
         
         if(is_null($comment))
-        return $this->sendError(["Something went wrong while creating"]);
+        return $this->sendError([Config::get('constants.messages.something_went_wrong_while_creating')]);
         
         $comment['type'] = 'comments';
         return $this->sendResponse($comment,201);
@@ -86,9 +87,9 @@ class CommentController extends BaseController
                 return $this->sendResponse($comment);
             }
             
-            return $this->sendError(["Something went wrong while updating"]);
+            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_updating')]);
         }
-        return $this->sendError(["This comment doesn't belong to you"],Response::HTTP_UNAUTHORIZED);
+        return $this->sendError([Config::get('constants.messages.this_comment_doesnt_belong_to_you')],Response::HTTP_UNAUTHORIZED);
     }
 
     public function destroy($id)
@@ -104,8 +105,8 @@ class CommentController extends BaseController
             if($is_deleted)
                 return $this->sendResponse(null);
 
-            return $this->sendError(["Something went wrong while deleting"]);
+            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_deleting')]);
         }
-        return $this->sendError(["This comment doesn't belong to you"],Response::HTTP_UNAUTHORIZED);
+        return $this->sendError([Config::get('constants.messages.this_comment_doesnt_belong_to_you')],Response::HTTP_UNAUTHORIZED);
     }
 }

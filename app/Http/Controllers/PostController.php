@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BaseController;
 use Illuminate\Support\Facades\DB;
+use Config;
 
 class PostController extends BaseController
 {
@@ -43,11 +44,11 @@ class PostController extends BaseController
         $post = $request->all();
         $post['user_id'] = auth('sanctum')->id();
         if(Post::find(['slug',$post->slug])->exists())
-            return $this->sendError(["This record already exists"]);
+            return $this->sendError([Config::get('constants.messages.this_record_already_exists')]);
         $post = Post::create($post);
         
         if(is_null($post))
-            return $this->sendError(["Something went wrong while creating"]);
+            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_creating')]);
 
         return $this->sendResponse($post,Response::HTTP_CREATED);
     }
@@ -85,9 +86,9 @@ class PostController extends BaseController
             if($is_updated)
                 return $this->sendResponse(Post::find($id));
 
-            return $this->sendError(["Something went wrong while updating"]);
+            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_updating')]);
         }
-        return $this->sendError(["This comment doesn't belong to you"],Response::HTTP_UNAUTHORIZED);
+        return $this->sendError([Config::get('constants.messages.this_comment_doesnt_belong_to_you')],Response::HTTP_UNAUTHORIZED);
     }
 
     public function destroy($id)
@@ -102,8 +103,8 @@ class PostController extends BaseController
             $is_deleted = Post::find($id)->delete();
             if($is_deleted)
                 return $this->sendResponse(null);
-            return $this->sendError(["Something went wrong while deleting"]);
+            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_deleting')]);
         }
-        return $this->sendError(["This comment doesn't belong to you"],Response::HTTP_UNAUTHORIZED);
+        return $this->sendError([Config::get('constants.messages.this_comment_doesnt_belong_to_you')],Response::HTTP_UNAUTHORIZED);
     }
 }
