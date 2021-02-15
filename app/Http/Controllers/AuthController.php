@@ -12,22 +12,22 @@ class AuthController extends BaseController
 {
 
     public function login(Request $request) {
-
+        $this->validateHeaders($request);
         $validator = Validator::make($request->all(), [
             "email" =>  "required|email",
             "password" =>  "required",
         ]);
 
         if($validator->fails())
-            return $this->sendError("validation_errors",400,$validator->errors());
+            return $this->sendError($validator->errors(),400);
 
         $user = User::where("email", $request->email)->first();
 
         if(is_null($user))
-            return $this->sendError("Failed! email not found");
+            return $this->sendError(["Failed! email not found"]);
 
         if(!Auth::attempt($request->only('email', 'password')))
-            return $this->sendError("Whoops! invalid password", 401, []);
+            return $this->sendError(["invalid password"], 401);
         
         $tokenResult = User::where("email", $request->email)
                         ->first()
@@ -39,7 +39,8 @@ class AuthController extends BaseController
 
     public function logout(Request $request)
     {
+        $this->validateHeaders($request);
         $request->user()->currentAccessToken()->delete();
-        return $this->sendResponse("Token deleted successfully");
+        return $this->sendResponse(null);
     }
 }
