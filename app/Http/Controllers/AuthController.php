@@ -21,15 +21,21 @@ class AuthController extends BaseController
         ]);
 
         if($validator->fails())
+        {
             return $this->sendError($validator->errors());
+        }
 
         $user = User::where("email", $request->email)->first();
 
         if(is_null($user))
+        {
             return $this->sendError([Config::get('constants.messages.email_not_found')]);
+        }
 
         if(!Auth::attempt($request->only('email', 'password')))
+        {
             return $this->sendError([Config::get('constants.messages.invalid_password')], Response::HTTP_UNAUTHORIZED);
+        }
         
         $tokenResult = User::where("email", $request->email)
                         ->first()

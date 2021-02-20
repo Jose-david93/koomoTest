@@ -15,7 +15,9 @@ class CommentController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $request->validate([
             'content' => 'required',
@@ -27,7 +29,9 @@ class CommentController extends BaseController
         $comment = Comment::create($comment);
         
         if(is_null($comment))
-        return $this->sendError([Config::get('constants.messages.something_went_wrong_while_creating')]);
+        {
+            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_creating')]);
+        }
         
         $comment['type'] = 'comments';
         return $this->sendResponse($comment,201);
@@ -38,12 +42,16 @@ class CommentController extends BaseController
         $pages = 5;
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $comments = Comment::where('post_id',$id)
         ->select('id','content','is_published','user_id','post_id', DB::raw("'comments' AS type"));
         if(!auth('sanctum')->check())
+        {
             $comments = $comments->where("is_published",true);
+        }
 
         return response()->json($comments->paginate($pages));
     }
@@ -54,12 +62,16 @@ class CommentController extends BaseController
         $requestHeaders = $this->validateHeaders($request);
 
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $comments = Comment::where('user_id',$id)
         ->select('id','content','is_published','user_id','post_id', DB::raw("'comments' AS type"));
         if(!auth('sanctum')->check())
+        {
             $comments = $comments->where("is_published",true);
+        }
         
         $comments = $comments->get();
         return response()->json($comments->paginate($pages));
@@ -69,7 +81,9 @@ class CommentController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $request->validate([
             'title' => 'required',
@@ -78,7 +92,9 @@ class CommentController extends BaseController
         ]);
 
         if(!Comment::where('id',$id)->exists())
+        {
             return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
+        }
             
         $comment = Comment::find($id);
 
@@ -101,18 +117,23 @@ class CommentController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         if(!Comment::where('id',$id)->exists())
+        {
             return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
+        }
         
         $comment = Comment::find($id);
         if($this->isCurrentUserOwner($comment->user_id))
         {
             $is_deleted = Comment::find($id)->delete();
             if($is_deleted)
+            {
                 return $this->sendResponse(null);
-
+            }
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_deleting')]);
         }
         return $this->sendError([Config::get('constants.messages.this_comment_doesnt_belong_to_you')],Response::HTTP_UNAUTHORIZED);

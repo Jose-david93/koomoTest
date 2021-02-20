@@ -18,7 +18,9 @@ class PostController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $pages = 5;
         $posts = Post::select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
@@ -26,7 +28,9 @@ class PostController extends BaseController
                 ->withCount('comments');
 
         if(!auth('sanctum')->check())
+        {
             $posts = $posts->where("is_published",true);
+        }
         return response()->json($posts->paginate($pages));
     }
 
@@ -34,7 +38,9 @@ class PostController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $request->validate([
             'title' => 'required',
@@ -46,11 +52,15 @@ class PostController extends BaseController
         $post['user_id'] = auth('sanctum')->id();
 
         if(Post::where('slug',$post['slug'])->exists())
+        {
             return $this->sendError([Config::get('constants.messages.this_record_already_exists')]);
+        }
         $post = Post::create($post);
         
         if(is_null($post))
+        {
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_creating')]);
+        }
         
         $post['type'] = 'posts';
         return $this->sendResponse($post,Response::HTTP_CREATED);
@@ -60,14 +70,18 @@ class PostController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $posts = Post::select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
                 ->with('latestComments')
                 ->where('id',$id);
 
         if(!auth('sanctum')->check())
+        {
             $posts = $posts->where("is_published",true);
+        }
         
         return $this->sendResponse($posts->get());
     }
@@ -76,7 +90,9 @@ class PostController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         $request->validate([
             'title' => 'required',
@@ -86,14 +102,18 @@ class PostController extends BaseController
         ]);
 
         if(!Post::where('id',$id)->exists())
+        {
             return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
+        }
 
         $post = Post::find($id);
 
         if($this->isCurrentUserOwner($post->user_id))
         {
             if(Post::where("slug",$request->slug)->exists())
+            {
                 return $this->sendError([Config::get('constants.messages.this_record_already_exists')]);
+            }
             
             $is_updated = Post::find($id)->update($request->all());
             if($is_updated)
@@ -111,17 +131,23 @@ class PostController extends BaseController
     {
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
+        {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
 
         if(!Post::where('id',$id)->exists())
+        {
             return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
+        }
 
         $post = Post::find($id);
         if(auth('sanctum')->id() === $post->user_id)
         {
             $is_deleted = Post::find($id)->delete();
             if($is_deleted)
+            {
                 return $this->sendResponse(null);
+            }
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_deleting')]);
         }
         return $this->sendError([Config::get('constants.messages.this_post_doesnt_belong_to_you')],Response::HTTP_UNAUTHORIZED);
