@@ -22,16 +22,13 @@ class PostController extends BaseController
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
 
-        $pages = 5;
-        $posts = Post::select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
-                ->with('latestComments')
-                ->withCount('comments');
+        $posts = Post::getPosts();
 
         if(!auth('sanctum')->check())
         {
             $posts = $posts->where("is_published",true);
         }
-        return response()->json($posts->paginate($pages));
+        return response()->json($posts->paginate(Config::get('configurations.messages.rows_per_page')));
     }
 
     public function store(Request $request)
@@ -74,9 +71,7 @@ class PostController extends BaseController
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
 
-        $posts = Post::select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
-                ->with('latestComments')
-                ->where('id',$id);
+        $posts = Post::getPostById($id);
 
         if(!auth('sanctum')->check())
         {

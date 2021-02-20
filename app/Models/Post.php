@@ -29,4 +29,16 @@ class Post extends Model
         ->join(DB::raw($subQuery),'comments.id','=','temp.id')
         ->where('rnk','<=',5);
     }
+
+    public function getPosts() {
+        return $this->select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
+        ->with('latestComments')
+        ->withCount('comments');
+    }
+
+    public function getPostById($id) {
+        return $this->select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
+        ->with('latestComments')
+        ->where('id',$id);
+    }
 }

@@ -24,6 +24,7 @@ class CommentController extends BaseController
             'post_id' => 'required',
             'is_published' => 'required'
         ]);
+        
         $comment = $request->all();
         $comment['user_id'] = auth('sanctum')->id();
         $comment = Comment::create($comment);
@@ -46,8 +47,8 @@ class CommentController extends BaseController
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
 
-        $comments = Comment::where('post_id',$id)
-        ->select('id','content','is_published','user_id','post_id', DB::raw("'comments' AS type"));
+        $comments = Comment::getCommentsByPostId($id);
+
         if(!auth('sanctum')->check())
         {
             $comments = $comments->where("is_published",true);
@@ -66,8 +67,8 @@ class CommentController extends BaseController
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
 
-        $comments = Comment::where('user_id',$id)
-        ->select('id','content','is_published','user_id','post_id', DB::raw("'comments' AS type"));
+        $comments = getCommentsByUserId($id);
+
         if(!auth('sanctum')->check())
         {
             $comments = $comments->where("is_published",true);

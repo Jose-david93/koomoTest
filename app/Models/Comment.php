@@ -16,4 +16,16 @@ class Comment extends Model
         'user_id'
     ];
 
+    public function getCommentsByPostId($id)
+    {
+        return $this->where('post_id',$id)
+        ->select('id','content','is_published','user_id','post_id', DB::raw("'comments' AS type"));
+    }
+
+    public function getCommentsByUserId($id)
+    {
+        return $this->where('user_id',$id)
+        ->select('id','content','is_published','user_id','post_id', DB::raw("'comments' AS type"));
+    }
+
 }
