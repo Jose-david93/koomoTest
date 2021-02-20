@@ -26,7 +26,7 @@ class PostController extends BaseController
 
         if(!auth('sanctum')->check())
         {
-            $posts = $posts->where("is_published",true);
+            $posts = $posts->where('is_published',true);
         }
         return response()->json($posts->paginate(Config::get('configurations.messages.rows_per_page')));
     }
@@ -75,7 +75,7 @@ class PostController extends BaseController
 
         if(!auth('sanctum')->check())
         {
-            $posts = $posts->where("is_published",true);
+            $posts = $posts->where('is_published',true);
         }
         
         return $this->sendResponse($posts->get());
@@ -105,7 +105,7 @@ class PostController extends BaseController
 
         if($this->isCurrentUserOwner($post->user_id))
         {
-            if(Post::where("slug",$request->slug)->exists())
+            if(Post::where('slug',$request->slug)->exists())
             {
                 return $this->sendError([Config::get('constants.messages.this_record_already_exists')]);
             }
@@ -114,7 +114,7 @@ class PostController extends BaseController
             if($is_updated)
             {
                 $post = Post::find($id);
-                $post['type'] = "posts";
+                $post['type'] = 'posts';
                 return $this->sendResponse($post);
             }
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_updating')]);

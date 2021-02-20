@@ -31,13 +31,13 @@ class Post extends Model
     }
 
     public function getPosts() {
-        return $this->select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
+        return $this->select('id',DB::raw("'posts' AS type"),'title','slug','is_published','content','user_id',)
         ->with('latestComments')
         ->withCount('comments');
     }
 
     public function getPostById($id) {
-        return $this->select("id",DB::raw("'posts' AS type"),"title","slug","is_published","content","user_id",)
+        return $this->select('id',DB::raw("'posts' AS type"),'title','slug','is_published','content','user_id',)
         ->with('latestComments')
         ->where('id',$id);
     }

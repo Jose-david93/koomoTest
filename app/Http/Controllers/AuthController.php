@@ -16,8 +16,8 @@ class AuthController extends BaseController
     public function login(Request $request) {
         $this->validateHeaders($request);
         $validator = Validator::make($request->all(), [
-            "email" =>  "required|email",
-            "password" =>  "required",
+            'email' =>  'required|email',
+            'password' =>  'required',
         ]);
 
         if($validator->fails())
@@ -25,7 +25,7 @@ class AuthController extends BaseController
             return $this->sendError($validator->errors());
         }
 
-        $user = User::where("email", $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
         if(is_null($user))
         {
@@ -37,7 +37,7 @@ class AuthController extends BaseController
             return $this->sendError([Config::get('constants.messages.invalid_password')], Response::HTTP_UNAUTHORIZED);
         }
         
-        $tokenResult = User::where("email", $request->email)
+        $tokenResult = User::where('email', $request->email)
                         ->first()
                         ->createToken('authToken')
                         ->plainTextToken;

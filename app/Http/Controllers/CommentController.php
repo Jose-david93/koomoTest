@@ -51,7 +51,7 @@ class CommentController extends BaseController
 
         if(!auth('sanctum')->check())
         {
-            $comments = $comments->where("is_published",true);
+            $comments = $comments->where('is_published',true);
         }
 
         return response()->json($comments->paginate($pages));
@@ -71,7 +71,7 @@ class CommentController extends BaseController
 
         if(!auth('sanctum')->check())
         {
-            $comments = $comments->where("is_published",true);
+            $comments = $comments->where('is_published',true);
         }
         
         $comments = $comments->get();

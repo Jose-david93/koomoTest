@@ -33,13 +33,13 @@ class BaseController extends Controller
 
     public function validateHeaders(Request $request) {
         $response['isValid'] = true;
-        if($request->header("accept") == null)
+        if($request->header('accept') == null)
         {
             $response['isValid'] = false;
             $response['message'] = Config::get('constants.messages.not_acceptable');
             $response['code'] = Response::HTTP_NOT_ACCEPTABLE;
         }
-        else if($request->header("accept") !== "application/vnd.api+json")
+        else if($request->header('accept') !== 'application/vnd.api+json')
         {
             $response['isValid'] = false;
             $response['message'] = Config::get('constants.messages.unsupported_media_type');
