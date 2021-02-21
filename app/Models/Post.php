@@ -24,21 +24,9 @@ class Post extends Model
 
     public function latestComments() {
         //This to get an enumerable for each row.
-        $subQuery = "(SELECT id, 'comments' AS type, RANK() OVER (PARTITION BY post_id ORDER BY id DESC) AS rnk FROM comments) AS temp";
+        $subQuery = "(SELECT id, RANK() OVER (PARTITION BY post_id ORDER BY id DESC) AS rnk FROM comments) AS temp";
         return $this->hasMany(Comment::class)
         ->join(DB::raw($subQuery),'comments.id','=','temp.id')
         ->where('rnk','<=',5);
-    }
-
-    public function getPosts() {
-        return $this->select('id',DB::raw("'posts' AS type"),'title','slug','is_published','content','user_id',)
-        ->with('latestComments')
-        ->withCount('comments');
-    }
-
-    public function getPostById($id) {
-        return $this->select('id',DB::raw("'posts' AS type"),'title','slug','is_published','content','user_id',)
-        ->with('latestComments')
-        ->where('id',$id);
     }
 }

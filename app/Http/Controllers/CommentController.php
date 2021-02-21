@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\BaseController;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Resources\PaginateCommentResource;
+use App\Http\Resources\CommentResource;
 use Config;
 
 class CommentController extends BaseController
@@ -28,54 +29,34 @@ class CommentController extends BaseController
         $comment = $request->all();
         $comment['user_id'] = auth('sanctum')->id();
         $comment = Comment::create($comment);
-        
-        if(is_null($comment))
-        {
-            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_creating')]);
-        }
-        
-        $comment['type'] = 'comments';
-        return $this->sendResponse($comment,201);
+        $comment = Comment::where('id',$comment->id)->get();
+        return $this->sendResponse(CommentResource::collection($comment),Response::HTTP_CREATED);
     }
 
     public function showByPostId(Request $request, $id)
     {
-        $pages = 5;
         $requestHeaders = $this->validateHeaders($request);
         if(!$requestHeaders['isValid'])
         {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
 
-        $comments = Comment::getCommentsByPostId($id);
+        $comment = new Comment();
+        $comments = $comment->getCommentsByPostId($id);
 
-        if(!auth('sanctum')->check())
-        {
-            $comments = $comments->where('is_published',true);
-        }
-
-        return response()->json($comments->paginate($pages));
+        return response()->json(PaginateCommentResource::collection($comments->paginate(Config::get('constants.configurations.rows_per_page')))->response()->getData(true));
     }
 
     public function showByUserId(Request $request, $id)
     {
-        $pages = 5;
         $requestHeaders = $this->validateHeaders($request);
-
         if(!$requestHeaders['isValid'])
         {
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
-
-        $comments = getCommentsByUserId($id);
-
-        if(!auth('sanctum')->check())
-        {
-            $comments = $comments->where('is_published',true);
-        }
-        
-        $comments = $comments->get();
-        return response()->json($comments->paginate($pages));
+        $comment = new Comment();
+        $comments = $comment->getCommentsByUserId($id);
+        return response()->json(PaginateCommentResource::collection($comments->paginate(Config::get('constants.configurations.rows_per_page')))->response()->getData(true));
     }
 
     public function update(Request $request, $id)
@@ -87,7 +68,6 @@ class CommentController extends BaseController
         }
 
         $request->validate([
-            'title' => 'required',
             'content' => 'required',
             'is_published' => 'required'
         ]);
@@ -101,12 +81,11 @@ class CommentController extends BaseController
 
         if($this->isCurrentUserOwner($comment->user_id))
         {
-            $is_updated = Comment::find($id)->update($request->all());
+            $is_updated = Comment::where('id',$id)->update($request->all());
             if($is_updated)
             {
-                $comment = Comment::find($id);
-                $comment['type'] = 'comments';
-                return $this->sendResponse($comment);
+                $comment = Comment::where('id',$id)->get();
+                return $this->sendResponse(CommentResource::collection($comment));
             }
             
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_updating')]);
@@ -128,12 +107,13 @@ class CommentController extends BaseController
         }
         
         $comment = Comment::find($id);
+        
         if($this->isCurrentUserOwner($comment->user_id))
         {
-            $is_deleted = Comment::find($id)->delete();
+            $is_deleted = Comment::where('id',$id)->delete();
             if($is_deleted)
             {
-                return $this->sendResponse(null);
+                return $this->sendNullResponse();
             }
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_deleting')]);
         }

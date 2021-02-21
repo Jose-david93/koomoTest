@@ -7,8 +7,10 @@ use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\BaseController;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Resources\PaginatePostResource;
+use App\Http\Resources\PostResource;
+
 use Config;
 
 class PostController extends BaseController
@@ -22,13 +24,13 @@ class PostController extends BaseController
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
 
-        $posts = Post::getPosts();
+        $posts = Post::with('latestComments')->withCount('comments');
 
         if(!auth('sanctum')->check())
         {
             $posts = $posts->where('is_published',true);
         }
-        return response()->json($posts->paginate(Config::get('configurations.messages.rows_per_page')));
+        return response()->json(PaginatePostResource::collection($posts->paginate(Config::get('constants.configurations.rows_per_page')))->response()->getData(true));
     }
 
     public function store(Request $request)
@@ -45,22 +47,16 @@ class PostController extends BaseController
             'content' => 'required',
             'is_published' => 'required'
         ]);
-        $post = $request->all();
-        $post['user_id'] = auth('sanctum')->id();
 
-        if(Post::where('slug',$post['slug'])->exists())
+        if(Post::where('slug',$request->slug)->exists())
         {
             return $this->sendError([Config::get('constants.messages.this_record_already_exists')]);
         }
+        $post = $request->all();
+        $post['user_id'] = auth('sanctum')->id();
         $post = Post::create($post);
-        
-        if(is_null($post))
-        {
-            return $this->sendError([Config::get('constants.messages.something_went_wrong_while_creating')]);
-        }
-        
-        $post['type'] = 'posts';
-        return $this->sendResponse($post,Response::HTTP_CREATED);
+        $post = Post::where('id',$post->id)->get();
+        return $this->sendResponse(PostResource::collection($post),Response::HTTP_CREATED);
     }
 
     public function show(Request $request, $id)
@@ -71,14 +67,17 @@ class PostController extends BaseController
             return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
         }
 
-        $posts = Post::getPostById($id);
+        $posts = Post::with('latestComments')->where('id',$id);
 
         if(!auth('sanctum')->check())
         {
             $posts = $posts->where('is_published',true);
         }
-        
-        return $this->sendResponse($posts->get());
+        $posts = $posts->get();
+        if($posts->isEmpty())
+            return $this->sendNullResponse();
+
+        return $this->sendResponse(PostResource::collection($posts));
     }
 
     public function update(Request $request, $id)
@@ -101,7 +100,7 @@ class PostController extends BaseController
             return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
         }
 
-        $post = Post::find($id);
+        $post = Post::where('id',$id);
 
         if($this->isCurrentUserOwner($post->user_id))
         {
@@ -113,9 +112,8 @@ class PostController extends BaseController
             $is_updated = Post::find($id)->update($request->all());
             if($is_updated)
             {
-                $post = Post::find($id);
-                $post['type'] = 'posts';
-                return $this->sendResponse($post);
+                $post = Post::where('id',$id)->get();
+                return $this->sendResponse(PostResource::collection($post));
             }
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_updating')]);
         }
@@ -138,10 +136,10 @@ class PostController extends BaseController
         $post = Post::find($id);
         if(auth('sanctum')->id() === $post->user_id)
         {
-            $is_deleted = Post::find($id)->delete();
+            $is_deleted = Post::where('id',$id)->delete();
             if($is_deleted)
             {
-                return $this->sendResponse(null);
+                return $this->sendNullResponse();
             }
             return $this->sendError([Config::get('constants.messages.something_went_wrong_while_deleting')]);
         }

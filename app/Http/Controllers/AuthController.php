@@ -9,12 +9,18 @@ use App\Models\User;
 use App\Http\Controllers\BaseController;
 use Symfony\Component\HttpFoundation\Response;
 use Config;
+use App\Http\Resources\AuthResource;
 
 class AuthController extends BaseController
 {
 
     public function login(Request $request) {
-        $this->validateHeaders($request);
+        $requestHeaders = $this->validateHeaders($request);
+        if(!$requestHeaders['isValid'])
+        {
+            return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
+
         $validator = Validator::make($request->all(), [
             'email' =>  'required|email',
             'password' =>  'required',
@@ -42,12 +48,17 @@ class AuthController extends BaseController
                         ->createToken('authToken')
                         ->plainTextToken;
         
-        return $this->sendResponse($tokenResult);
+        return $this->sendResponse(['token' => $tokenResult]);
     }
 
     public function logout(Request $request)
     {
-        $this->validateHeaders($request);
+        $requestHeaders = $this->validateHeaders($request);
+        if(!$requestHeaders['isValid'])
+        {
+            return $this->sendError($requestHeaders['message'],$requestHeaders['code']);
+        }
+        
         $request->user()->currentAccessToken()->delete();
         return $this->sendResponse(null);
     }

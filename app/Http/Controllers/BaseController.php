@@ -10,11 +10,12 @@ class BaseController extends Controller
 {
     public function sendResponse($result, $httpResponseCode = Response::HTTP_OK)
     {
-        $response = [
-            'data' => $result
-        ];
+        return response()->json($result, $httpResponseCode);
+    }
 
-        return response()->json($response, $httpResponseCode);
+    public function sendNullResponse($httpResponseCode = Response::HTTP_OK)
+    {
+        return response()->json(['data' => null],$httpResponseCode);
     }
 
     public function sendError($error, $httpResponseCode = Response::HTTP_BAD_REQUEST)
