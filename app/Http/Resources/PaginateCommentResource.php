@@ -19,25 +19,16 @@ class PaginateCommentResource extends JsonResource
             'id' => $this->id,
             'attributes' => [
                 'content' => $this->content,
-                'is_published' => $this->content,
+                'is_published' => $this->is_published,
             ],
             'relationships' => [
-                'comments_by_user' =>[
-                    'links' => [
-                        'self' => 'http://127.0.0.1:8000/api/commentsByUser/'.$this->user_id
-                    ],
-                    'data' => [
-                        'type' => 'comments',
-                        'id' => $this->user_id
-                    ]
-                ],
                 'comments_by_post' =>[
                     'links' => [
                         'self' => 'http://127.0.0.1:8000/api/commentsByPost/'.$this->post_id
                     ],
                     'data' => [
                         'type' => 'comments',
-                        'id' => $this->user_id
+                        'id' => $this->post_id
                     ]
                 ]
             ],
