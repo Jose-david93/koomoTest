@@ -114,8 +114,7 @@ class PostController extends BaseController
                 return $this->sendError([Config::get('constants.messages.the_id_that_you_are_looking_for_does_not_exist')]);
             }
 
-            $post = Post::where('id',$id);
-
+            $post = Post::find($id);
             if($this->isCurrentUserOwner($post->user_id))
             {
                 if(Post::where('slug',$request->slug)->exists())
