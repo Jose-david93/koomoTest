@@ -23,28 +23,14 @@ class PaginatePostResource extends JsonResource
                     'comments_count' => $this->comments_count,
                     'is_published' => $this->is_published,
                     'created_at' => $this->created_at,
-                    'updated_at' => $this->updated_at,
-                    'included' => PaginateCommentResource::collection($this->latestComments)
+                    'updated_at' => $this->updated_at
                 ],
                 'relationships' => [
-                    'comments_by_user' =>[
-                        'links' => [
-                            'self' => 'http://127.0.0.1:8000/api/commentsByUser/'.$this->user_id
-                        ],
-                        'data' => [
-                            'type' => 'users',
-                            'id' => $this->user_id
-                        ]
+                    'links' => [
+                        'commentByPost' => 'http://127.0.0.1:8000/api/commentsByPost/'.$this->id,
                     ],
-
-                    'comments_by_post' =>[
-                        'links' => [
-                            'self' => 'http://127.0.0.1:8000/api/commentsByPost/'.$this->id
-                        ],
-                        'data' => [
-                            'type' => 'posts',
-                            'id' => $this->user_id
-                        ]
+                    'comments' => [
+                        'data' =>  PaginateCommentResource::collection($this->latestComments)
                     ]
                 ],
                 'links' => [
