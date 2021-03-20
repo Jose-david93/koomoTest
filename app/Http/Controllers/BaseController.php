@@ -10,11 +10,12 @@ class BaseController extends Controller
 {
     public function sendResponse($result, $httpResponseCode = Response::HTTP_OK)
     {
-        $response = [
-            'data' => $result
-        ];
+        return response()->json($result, $httpResponseCode);
+    }
 
-        return response()->json($response, $httpResponseCode);
+    public function sendNullResponse($httpResponseCode = Response::HTTP_OK)
+    {
+        return response()->json(['data' => null],$httpResponseCode);
     }
 
     public function sendError($error, $httpResponseCode = Response::HTTP_BAD_REQUEST)
@@ -33,13 +34,13 @@ class BaseController extends Controller
 
     public function validateHeaders(Request $request) {
         $response['isValid'] = true;
-        if($request->header("accept") == null)
+        if($request->header('accept') == null)
         {
             $response['isValid'] = false;
             $response['message'] = Config::get('constants.messages.not_acceptable');
             $response['code'] = Response::HTTP_NOT_ACCEPTABLE;
         }
-        else if($request->header("accept") !== "application/vnd.api+json")
+        else if($request->header('accept') !== 'application/vnd.api+json')
         {
             $response['isValid'] = false;
             $response['message'] = Config::get('constants.messages.unsupported_media_type');
